@@ -37,3 +37,6 @@ exports/
 # نظام
 .DS_Store
 Thumbs.db
+
+# سجلات محلية
+.tmp-*.log
