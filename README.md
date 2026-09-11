@@ -24,7 +24,7 @@ FastAPI (بحث + RAG)  ←  Next.js Frontend (RTL, dark mode)
 | `crawler/adapters/` | واجهة `SourceAdapter` + محول `sistani.org` + سجل المحولات |
 | `backend/` | FastAPI: مسارات البيانات، البحث العربي (FTS5/tsvector)، طبقة RAG، مزوّد Gemini ببث SSE |
 | `shared/` | مخطط قاعدة البيانات (SQLAlchemy 2)، معالجة النص العربي، التجزئة، فهارس البحث |
-| `frontend/` | Next.js 15 + Tailwind 4 — واجهة عربية RTL أولاً مع وضع داكن وخطوط محلية |
+| `app/` `components/` `lib/` (الجذر) | Next.js 15 + Tailwind 4 — واجهة عربية RTL أولاً مع وضع داكن وخطوط محلية |
 | `tests/` | 63 اختباراً مع HTML fixtures حقيقية من الموقع المصدر |
 | `migrations/` | ترحيلات Alembic |
 
@@ -74,8 +74,7 @@ copy .env.example .env                       # ثم املأ GEMINI_API_KEY (ا�
 # 3) الـAPI
 .venv/Scripts/python -m uvicorn backend.main:app --port 8000
 
-# 4) الواجهة
-cd frontend
+# 4) الواجهة (Next.js في جذر المستودع)
 copy .env.local.example .env.local
 npm install
 npm run dev
@@ -91,29 +90,30 @@ npm run dev
 
 ### الواجهة على Cloudflare Pages
 
-1. Settings → Builds & deployments → **Root directory**: `frontend`
-2. **Framework preset**: Next.js — يجعل أمر البناء:
-   `npx @cloudflare/next-on-pages@1`
-3. **Build output directory**: `.vercel/output/static`
-4. Settings → Functions → **Compatibility flags**: أضف `nodejs_compat` (للإنتاج والمعاينة)
-5. **Environment variables** (قبل البناء — متغيرات NEXT_PUBLIC تُخبز وقت البناء):
+تطبيق Next.js في جذر المستودع — لا حاجة لضبط Root directory:
+
+1. **Framework preset**: Next.js — يجعل أمر البناء: `npx @cloudflare/next-on-pages@1`
+2. **Build output directory**: `.vercel/output/static` (مثبّت في `wrangler.toml`)
+3. **Compatibility flags**: `nodejs_compat` (مثبّت في `wrangler.toml` أيضاً)
+4. **Environment variables** (قبل البناء — متغيرات NEXT_PUBLIC تُخبز وقت البناء):
    - `NEXT_PUBLIC_API_URL` = الرابط العام للـAPI
+5. تأكد أن اسم مشروع Pages يطابق `name` في `wrangler.toml`
 
 ملاحظة: لا تستخدم أمر `npx next build` مباشرة على Cloudflare Pages — استخدم
 `@cloudflare/next-on-pages` كما أعلاه لأن مسارات `/issue/[id]` و`/books/[id]`
-ديناميكية وتحتاج تشغيل Next على الـWorker.
+ديناميكية وتحتاج تشغيل Next على الـWorker. ملف `.npmrc` في الجذر يعالج تعارض
+`workers-types` v5 تلقائياً.
 
 ### الـAPI (Railway / Render / Fly)
 
-- Root directory: جذر المستودع (ليس `frontend`)
 - Start command: `uvicorn backend.main:app --host 0.0.0.0 --port $PORT`
 - متغيرات البيئة: `DATABASE_URL` (رابط Neon)، `GEMINI_API_KEY`، و`BACKEND_CORS_ORIGINS`
   متضمناً دومين الواجهة النهائي (مثل `https://rtl.pages.dev`)
 
 ### الواجهة على Vercel (بديل أبسط)
 
-Root directory = `frontend`، ثم Framework Preset = **Next.js** (يُكتشف تلقائياً)،
-ومتغير `NEXT_PUBLIC_API_URL`. لا حاجة لأعلام توافق إضافية.
+Framework Preset = **Next.js** (يُكتشف تلقائياً من الجذر)، ومتغير
+`NEXT_PUBLIC_API_URL`. لا حاجة لأي إعداد آخر.
 
 ## Docker (API + PostgreSQL + Frontend)
 
@@ -203,7 +203,7 @@ GET /api/search?q=صيام يوم عرفة&madhhab=shia
 .venv/Scripts/python -m ruff check .
 .venv/Scripts/python -m mypy crawler backend shared
 .venv/Scripts/python -m pytest tests/
-cd frontend && npm run lint && npm run typecheck && npm run build
+npm run lint && npm run typecheck && npm run build
 ```
 
 ## حالة ما نُفّذ فعلياً

@@ -1,13 +1,13 @@
 # إعداد Cloudflare Pages لمشروع منصة المصادر
-# في لوحة Pages (Build configuration):
-#   Build command:  cd frontend && npm install && npx @cloudflare/next-on-pages@1
+# تطبيق Next.js في جذر المستودع — Framework preset: Next.js بدون مجلد جذر خاص
+#   Build command:  npx @cloudflare/next-on-pages@1
 #   Deploy command: npx wrangler pages deploy
 # مهم: name أدناه يجب أن يطابق اسم مشروع Pages في لوحتك حرفياً.
 
 name = "rtl"
 compatibility_date = "2026-01-01"
 compatibility_flags = ["nodejs_compat"]
-pages_build_output_dir = "frontend/.vercel/output/static"
+pages_build_output_dir = ".vercel/output/static"
 
 [vars]
 # NEXT_PUBLIC_API_URL يُضبط من لوحة Cloudflare (Environment variables)
