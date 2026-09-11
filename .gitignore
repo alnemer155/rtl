@@ -1,0 +1,37 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+*.egg-info/
+build/
+dist/
+
+# Node
+node_modules/
+.next/
+out/
+
+# البيئة والإعدادات المحلية
+.env
+.env.local
+.env*.local
+
+# البيانات المولدة
+data/
+exports/
+*.db
+*.sqlite3
+
+# تحليل مؤقت
+.tmp-analysis/
+
+# المرجع المستنسخ للفحص فقط
+.ref-sal-ai-2/
+
+# نظام
+.DS_Store
+Thumbs.db
