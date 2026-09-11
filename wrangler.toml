@@ -1,0 +1,14 @@
+# إعداد Cloudflare Pages لمشروع منصة المصادر
+# الواجهة داخل frontend/ — أمر البناء في اللوحة يجب أن يدخل إليها:
+#   Build command: cd frontend && npm install && npx @cloudflare/next-on-pages@1
+#   هذا الملف يثبّت مجلد الناتج وأعلام التوافق تلقائياً.
+
+name = "masadir-frontend"
+compatibility_date = "2026-01-01"
+compatibility_flags = ["nodejs_compat"]
+pages_build_output_dir = "frontend/.vercel/output/static"
+
+[vars]
+# NEXT_PUBLIC_API_URL يُضبط من لوحة Cloudflare (Environment variables)
+# لأنه يُخبز في حزمة الواجهة وقت البناء، مثال:
+# NEXT_PUBLIC_API_URL = "https://masadir-api.onrender.com"
