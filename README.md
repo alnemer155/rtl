@@ -84,6 +84,37 @@ npm run dev
 - الواجهة: http://localhost:3000
 - الـAPI والتوثيق التفاعلي: http://localhost:8000/docs
 
+## النشر (Deployment)
+
+المستودع **monorepo**: الواجهة في `frontend/` والـAPI في الجذر. أي منصة نشر يجب
+أن تُوجَّه للمجلد الصحيح.
+
+### الواجهة على Cloudflare Pages
+
+1. Settings → Builds & deployments → **Root directory**: `frontend`
+2. **Framework preset**: Next.js — يجعل أمر البناء:
+   `npx @cloudflare/next-on-pages@1`
+3. **Build output directory**: `.vercel/output/static`
+4. Settings → Functions → **Compatibility flags**: أضف `nodejs_compat` (للإنتاج والمعاينة)
+5. **Environment variables** (قبل البناء — متغيرات NEXT_PUBLIC تُخبز وقت البناء):
+   - `NEXT_PUBLIC_API_URL` = الرابط العام للـAPI
+
+ملاحظة: لا تستخدم أمر `npx next build` مباشرة على Cloudflare Pages — استخدم
+`@cloudflare/next-on-pages` كما أعلاه لأن مسارات `/issue/[id]` و`/books/[id]`
+ديناميكية وتحتاج تشغيل Next على الـWorker.
+
+### الـAPI (Railway / Render / Fly)
+
+- Root directory: جذر المستودع (ليس `frontend`)
+- Start command: `uvicorn backend.main:app --host 0.0.0.0 --port $PORT`
+- متغيرات البيئة: `DATABASE_URL` (رابط Neon)، `GEMINI_API_KEY`، و`BACKEND_CORS_ORIGINS`
+  متضمناً دومين الواجهة النهائي (مثل `https://rtl.pages.dev`)
+
+### الواجهة على Vercel (بديل أبسط)
+
+Root directory = `frontend`، ثم Framework Preset = **Next.js** (يُكتشف تلقائياً)،
+ومتغير `NEXT_PUBLIC_API_URL`. لا حاجة لأعلام توافق إضافية.
+
 ## Docker (API + PostgreSQL + Frontend)
 
 ```bash
