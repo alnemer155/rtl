@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Header } from "@/components/chrome";
+import { SiteHeader } from "@/components/site-header";
 import { api } from "@/lib/api";
 
 interface Stats {
@@ -50,83 +50,95 @@ export default function AdminPage() {
         setStats(statsData);
         setRuns(runsData);
       })
-      .catch((cause) => setError(cause instanceof Error ? cause.message : "تعذر تحميل لوحة الإدارة"));
+      .catch((cause) => setError(cause instanceof Error ? cause.message : "تعذر تحميل اللوحة"));
   }, []);
 
-  const cards: { label: string; value: number | string | undefined }[] = stats
+  const cards: { label: string; value: number }[] = stats
     ? [
-        { label: "المذاهب", value: stats.madhhabs },
-        { label: "المصادر", value: stats.sources },
-        { label: "المراجع", value: stats.scholars },
         { label: "الكتب", value: stats.books },
         { label: "الأقسام", value: stats.sections },
         { label: "المسائل", value: stats.issues },
+        { label: "المراجع", value: stats.scholars },
+        { label: "المصادر", value: stats.sources },
         { label: "تشغيلات الزحف", value: stats.crawl_runs_total },
-        { label: "تشغيلات فاشلة/جزئية", value: stats.crawl_runs_failed },
-        { label: "أجوبة الذكاء الاصطناعي", value: stats.ai_answers },
+        { label: "فاشلة/جزئية", value: stats.crawl_runs_failed },
+        { label: "أجوبة الذكاء", value: stats.ai_answers },
       ]
     : [];
 
   return (
-    <main className="min-h-dvh">
-      <Header />
-      <div className="mx-auto w-full max-w-4xl px-4 pb-16">
-        <h1 className="display-font mt-6 text-2xl font-bold">لوحة الإدارة</h1>
-        {error ? <div role="alert" className="app-error mt-6 rounded-xl border px-4 py-3 text-sm">{error}</div> : null}
+    <div className="min-h-dvh">
+      <SiteHeader />
+      <main className="mx-auto w-full max-w-3xl px-5 pb-20 sm:px-6">
+        <h1 className="pt-10 text-[20px] font-bold leading-7 text-[var(--ink)]">الإدارة</h1>
+
+        {error ? (
+          <div role="alert" className="fade-in mt-6 text-[14px] text-[var(--muted-strong)]">
+            {error}
+          </div>
+        ) : null}
+
         {stats ? (
           <>
-            <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3">
+            <dl className="mt-6 grid grid-cols-2 gap-x-8 gap-y-4 sm:grid-cols-4">
               {cards.map((card) => (
-                <div key={card.label} className="rounded-2xl border border-[var(--line)] bg-white p-4 dark:bg-[#1b1a18]">
-                  <p className="text-2xl font-bold">{card.value}</p>
-                  <p className="mt-1 text-xs text-[var(--muted)]">{card.label}</p>
+                <div key={card.label}>
+                  <dt className="text-[11.5px] text-[var(--muted)]">{card.label}</dt>
+                  <dd className="mt-0.5 text-[22px] font-medium tabular-nums leading-7 text-[var(--ink)]">
+                    {card.value.toLocaleString("ar-EG")}
+                  </dd>
                 </div>
               ))}
-            </div>
+            </dl>
+
             {stats.last_crawl ? (
-              <section className="mt-8">
-                <h2 className="text-sm font-bold">آخر تشغيلة زحف</h2>
-                <div className="mt-3 rounded-2xl border border-[var(--line)] bg-white p-5 text-xs leading-7 dark:bg-[#1b1a18]">
-                  <p>الحالة: <span className="font-bold">{stats.last_crawl.status}</span></p>
-                  <p>صفحات معالجة: {stats.last_crawl.pages_processed}</p>
-                  <p>سجلات جديدة: {stats.last_crawl.records_created} — محدثة: {stats.last_crawl.records_updated} — دون تغيير: {stats.last_crawl.records_unchanged} — فاشلة: {stats.last_crawl.records_failed}</p>
-                  <p className="text-[var(--muted)]">
-                    {stats.last_crawl.started_at ? new Date(stats.last_crawl.started_at).toLocaleString("ar") : ""} ← {stats.last_crawl.finished_at ? new Date(stats.last_crawl.finished_at).toLocaleString("ar") : "مستمرة"}
-                  </p>
-                </div>
+              <section className="hairline-t mt-10 pt-6">
+                <h2 className="text-[14px] font-medium text-[var(--ink)]">آخر تشغيلة زحف</h2>
+                <p className="mt-2 text-[13px] leading-7 text-[var(--muted)]">
+                  الحالة <span className="text-[var(--muted-strong)]">{stats.last_crawl.status}</span> ·
+                  صفحات {stats.last_crawl.pages_processed} · جديدة {stats.last_crawl.records_created} ·
+                  محدثة {stats.last_crawl.records_updated} · دون تغيير {stats.last_crawl.records_unchanged} ·
+                  فاشلة {stats.last_crawl.records_failed}
+                </p>
               </section>
             ) : null}
-            <section className="mt-8">
-              <h2 className="text-sm font-bold">سجل التشغيلات</h2>
-              <div className="mt-3 space-y-2">
+
+            <section className="hairline-t mt-10 pt-6">
+              <h2 className="text-[14px] font-medium text-[var(--ink)]">سجل التشغيلات</h2>
+              <ul className="mt-3 divide-y divide-[var(--line)]">
                 {runs.map((run) => (
-                  <details key={run.id} className="rounded-xl border border-[var(--line)] bg-white p-4 text-xs dark:bg-[#1b1a18]">
-                    <summary className="cursor-pointer font-bold">
-                      تشغيلة #{run.id} — {run.status} — صفحات: {run.pages_processed} — سجلات: {run.records_created}
-                      {run.records_failed > 0 ? ` — فاشلة: ${run.records_failed}` : ""}
-                    </summary>
-                    {run.errors.length > 0 ? (
-                      <ul className="mt-3 space-y-1 text-[11px] text-[var(--muted)]">
-                        {run.errors.map((item, index) => (
-                          <li key={index} dir="ltr" className="truncate">{item.url}: {item.error}</li>
-                        ))}
-                      </ul>
-                    ) : (
-                      <p className="mt-3 text-[11px] text-[var(--muted)]">لا أخطاء مسجلة.</p>
-                    )}
-                  </details>
+                  <li key={run.id} className="py-3.5">
+                    <details className="group">
+                      <summary className="flex cursor-pointer list-none items-baseline gap-3 text-[13px]">
+                        <span className="text-[var(--ink)]">#{run.id}</span>
+                        <span className="text-[var(--muted)]">{run.status}</span>
+                        <span className="text-[var(--muted)]">
+                          صفحات {run.pages_processed} · سجلات {run.records_created}
+                          {run.records_failed > 0 ? ` · فاشلة ${run.records_failed}` : ""}
+                        </span>
+                      </summary>
+                      {run.errors.length > 0 ? (
+                        <ul className="mt-2 space-y-1 ps-6 text-[11.5px] leading-5 text-[var(--muted)]">
+                          {run.errors.map((item, index) => (
+                            <li key={index} dir="ltr" className="truncate text-start">
+                              {item.url}: {item.error}
+                            </li>
+                          ))}
+                        </ul>
+                      ) : null}
+                    </details>
+                  </li>
                 ))}
-                {runs.length === 0 ? <p className="text-xs text-[var(--muted)]">لا تشغيلات بعد.</p> : null}
-              </div>
+                {runs.length === 0 ? (
+                  <li className="py-3 text-[13px] text-[var(--muted)]">لا تشغيلات بعد.</li>
+                ) : null}
+              </ul>
             </section>
           </>
         ) : !error ? (
-          <div className="mt-8 animate-pulse space-y-3">
-            <div className="h-20 w-full rounded bg-[var(--stone)]" />
-            <div className="h-20 w-full rounded bg-[var(--stone)]" />
-          </div>
+          <p className="quiet-dot pt-12 text-[13px] text-[var(--muted)]">…</p>
         ) : null}
-      </div>
-    </main>
+      </main>
+    </div>
   );
 }

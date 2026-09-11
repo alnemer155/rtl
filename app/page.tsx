@@ -1,27 +1,32 @@
-import { Header, SearchForm } from "@/components/chrome";
+import { Composer } from "@/components/composer";
+import { SiteHeader } from "@/components/site-header";
 
+const SUGGESTIONS = [
+  "صيام يوم عرفة",
+  "حكم ربط الكتائب",
+  "زكاة الفطرة",
+  "غسل يوم الجمعة",
+];
+
+/**
+ * الرئيسية: فراغ أولاً — حقل السؤال هو بطل الصفحة،
+ * بلا عنوان ضخم ولا فقرة تسويقية ولا شارات.
+ */
 export default function Home() {
   return (
-    <main className="flex min-h-dvh flex-col">
-      <Header />
-      <section className="flex flex-1 flex-col items-center justify-center px-4 pb-24">
-        <h1 className="display-font text-4xl font-bold leading-tight sm:text-5xl">مصــادر</h1>
-        <p className="mx-auto mt-4 max-w-md text-center text-sm leading-7 text-[var(--muted)]">
-          قاعدة معرفية موحدة تجمع المصادر الفقهية والحديثية السنية والشيعية،
-          بكل نصّ مرتبط بمصدره الرسمي وانتمائه.
-        </p>
-        <div className="mx-auto mt-8 w-full max-w-2xl">
-          <SearchForm />
+    <div className="flex min-h-dvh flex-col">
+      <SiteHeader />
+      <main className="flex flex-1 flex-col items-center px-5">
+        <div className="flex w-full max-w-[728px] flex-1 flex-col justify-center pb-24 pt-10 sm:pt-0">
+          <p className="mb-6 hidden text-center text-[15px] font-medium text-[var(--muted)] sm:block">
+            مصادر موثوقة للفقه والحديث
+          </p>
+          <Composer variant="hero" suggestions={SUGGESTIONS} />
         </div>
-        <div className="mt-6 flex flex-wrap justify-center gap-2 text-[11px] text-[var(--muted)]">
-          <span className="source-chip"><span className="source-dot" />بحث تقليدي في النصوص</span>
-          <span className="source-chip"><span className="source-dot" />فلترة بالمذهب والمرجع</span>
-          <span className="source-chip"><span className="source-dot" />روابط للمصادر الأصلية</span>
-        </div>
-      </section>
-      <footer className="pb-6 text-center text-[10px] text-[var(--muted)]">
-        النصوص تُعرض كما وردت في مصادرها الرسمية دون تعديل.
+      </main>
+      <footer className="pb-6 text-center text-[11.5px] text-[var(--muted)]">
+        كل نصٍّ مرتبط بمصدره الرسمي كما ورد
       </footer>
-    </main>
+    </div>
   );
 }
