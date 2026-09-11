@@ -2,8 +2,7 @@
 
 import { useEffect } from "react";
 import { ArrowUpLeft, X } from "lucide-react";
-import Link from "next/link";
-import type { Citation } from "@/lib/api";
+import type { ChatCitation } from "@/lib/api";
 
 /**
  * لوحة المصادر: تظهر كطبقة ثانوية بنفس لون الخلفية،
@@ -14,7 +13,7 @@ export function SourceDrawer({
   activeIndex,
   onClose,
 }: {
-  citations: Citation[];
+  citations: ChatCitation[];
   activeIndex: number | null;
   onClose: () => void;
 }) {
@@ -37,17 +36,17 @@ export function SourceDrawer({
       <div className="absolute inset-0 bg-[var(--overlay)] transition-opacity duration-200" />
       <div
         onClick={(event) => event.stopPropagation()}
-        className="drawer-in absolute inset-y-0 end-0 flex w-full max-w-[440px] flex-col border-s border-[var(--line)] bg-[var(--paper)] sm:w-[420px]"
+        className="drawer-in absolute inset-y-0 end-0 flex w-full max-w-[440px] flex-col border-s border-[var(--border)] bg-[var(--background)] sm:w-[420px]"
       >
         <div className="flex items-center justify-between px-5 pb-3 pt-5">
-          <h2 className="text-[14px] font-medium text-[var(--ink)]">
+          <h2 className="text-[14px] font-medium text-[var(--foreground)]">
             المصادر المستخدمة
-            <span className="ms-1.5 text-[var(--muted)]">{citations.length}</span>
+            <span className="ms-1.5 text-[var(--muted-foreground)]">{citations.length}</span>
           </h2>
           <button
             onClick={onClose}
             aria-label="إغلاق"
-            className="grid size-8 place-items-center rounded-full text-[var(--muted)] transition-colors duration-150 hover:bg-[var(--stone)] hover:text-[var(--ink)]"
+            className="grid size-8 place-items-center rounded-full text-[var(--muted-foreground)] transition-colors duration-150 hover:bg-[var(--surface)] hover:text-[var(--foreground)]"
           >
             <X size={15} strokeWidth={1.6} />
           </button>
@@ -56,40 +55,26 @@ export function SourceDrawer({
           {ordered.map((citation) => (
             <article key={citation.index} className="hairline-b py-4 last:border-0">
               <div className="flex items-baseline gap-2">
-                <span className="text-[12px] tabular-nums text-[var(--muted)]">[{citation.index}]</span>
-                <h3 className="text-[14px] font-medium leading-6 text-[var(--ink)]">
-                  {citation.book_title}
-                  {citation.issue_number !== null ? (
-                    <span className="text-[var(--muted)]"> · المسألة {citation.issue_number}</span>
-                  ) : null}
+                <span className="text-[12px] tabular-nums text-[var(--muted-foreground)]">[{citation.index}]</span>
+                <h3 className="min-w-0 text-[14px] font-medium leading-6 text-[var(--foreground)]">
+                  {citation.title}
                 </h3>
               </div>
-              {citation.scholar ? (
-                <p className="mt-0.5 ps-6 text-[12.5px] text-[var(--muted)]">{citation.scholar}</p>
+              <p className="mt-0.5 ps-6 text-[11.5px] text-[var(--muted-foreground)]">{citation.provider_label}</p>
+              {citation.detail ? (
+                <p className="mt-0.5 ps-6 text-[12.5px] leading-5 text-[var(--muted-foreground)]">{citation.detail}</p>
               ) : null}
-              {citation.section_path ? (
-                <p className="mt-0.5 ps-6 text-[12.5px] leading-5 text-[var(--muted)]">{citation.section_path}</p>
-              ) : null}
-              <p className="mt-2.5 ps-6 text-[13.5px] leading-7 text-[var(--muted-strong)]">
-                {citation.text_original.length > 420
-                  ? `${citation.text_original.slice(0, 420)}…`
-                  : citation.text_original}
+              <p className="mt-2.5 ps-6 text-[13.5px] leading-7 text-[var(--muted-foreground)]">
+                {citation.text.length > 420 ? `${citation.text.slice(0, 420)}…` : citation.text}
               </p>
               <div className="mt-2.5 flex items-center gap-4 ps-6">
-                <Link
-                  href={`/issue/${citation.issue_id}`}
-                  onClick={onClose}
-                  className="text-[12.5px] text-[var(--ink)] underline-offset-4 transition-colors duration-150 hover:text-[var(--accent)] hover:underline"
-                >
-                  النص الكامل
-                </Link>
                 <a
-                  href={citation.source_url}
+                  href={citation.url}
                   target="_blank"
                   rel="noreferrer"
-                  className="inline-flex items-center gap-1 text-[12.5px] text-[var(--muted)] underline-offset-4 transition-colors duration-150 hover:text-[var(--ink)] hover:underline"
+                  className="inline-flex items-center gap-1 text-[12.5px] text-[var(--muted-foreground)] underline-offset-4 transition-colors duration-150 hover:text-[var(--foreground)] hover:underline"
                 >
-                  المصدر الأصلي <ArrowUpLeft size={11} strokeWidth={1.8} />
+                  فتح المصدر <ArrowUpLeft size={11} strokeWidth={1.8} />
                 </a>
               </div>
             </article>
@@ -110,7 +95,7 @@ export function CitationText({
   onOpen,
 }: {
   text: string;
-  citations: Citation[];
+  citations: ChatCitation[];
   onOpen: (index: number) => void;
 }) {
   const parts = text.split(/(\[\d+\])/g);
@@ -127,7 +112,7 @@ export function CitationText({
               key={index}
               onClick={() => onOpen(index_)}
               aria-label={`المصدر ${index_}`}
-              className="mx-0.5 inline-grid h-[17px] min-w-[17px] translate-y-[-2px] place-items-center rounded-[5px] border border-[var(--line)] bg-[var(--stone)] px-1 align-middle text-[10.5px] tabular-nums text-[var(--muted-strong)] transition-colors duration-150 hover:border-[var(--line-strong)] hover:text-[var(--ink)]"
+              className="mx-0.5 inline-grid h-[17px] min-w-[17px] translate-y-[-2px] place-items-center rounded-[5px] border border-[var(--border)] bg-[var(--surface)] px-1 align-middle text-[10.5px] tabular-nums text-[var(--muted-foreground)] transition-colors duration-150 hover:border-[var(--border-strong)] hover:text-[var(--foreground)]"
             >
               {index_}
             </button>

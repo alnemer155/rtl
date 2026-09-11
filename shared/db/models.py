@@ -257,6 +257,38 @@ class CrawlPageState(Base):
     __table_args__ = (UniqueConstraint("book_id", "url", name="uq_page_book_url"),)
 
 
+class Conversation(Base):
+    """جلسة محادثة — المحادثة هي مركز المنتج، والبقية بنية تحتية."""
+
+    __tablename__ = "conversations"
+
+    # المعرّف UUID يُولّد فوراً بلا انتظار قاعدة البيانات — البث يبدأ لحظياً
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    title: Mapped[str] = mapped_column(String(300), default="محادثة جديدة", nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, onupdate=utcnow)
+
+    messages: Mapped[list[ChatMessage]] = relationship(
+        back_populates="conversation", order_by="ChatMessage.id"
+    )
+
+
+class ChatMessage(Base):
+    """رسالة داخل محادثة: سؤال المستخدم أو جواب المساعد مع استشهاداته."""
+
+    __tablename__ = "chat_messages"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    conversation_id: Mapped[str] = mapped_column(String(36), ForeignKey("conversations.id"), index=True, nullable=False)
+    role: Mapped[str] = mapped_column(String(12), nullable=False)  # user | assistant
+    content: Mapped[str] = mapped_column(Text, default="", nullable=False)
+    citations_json: Mapped[list] = mapped_column(JSON, default=list)
+    route_json: Mapped[dict] = mapped_column(JSON, default=dict)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+    conversation: Mapped[Conversation] = relationship(back_populates="messages")
+
+
 class AiAnswer(Base):
     """محتوى مشتق: أجوبة Gemini لا تُخزّن أبداً كسجلات مصدرية."""
 

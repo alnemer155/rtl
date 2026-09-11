@@ -1,9 +1,11 @@
 import type { Metadata, Viewport } from "next";
+import { AppShell } from "@/components/app-shell";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "مصادر — قاعدة المصادر الفقهية والحديثية",
-  description: "منصة بحثية توحّد المصادر الفقهية والحديثية السنية والشيعية مع الاستناد إلى النصوص الأصلية.",
+  title: "مصادر — مساعد إسلامي قائم على المصادر",
+  description:
+    "Chatbot إسلامي يجيب اعتماداً على المصادر الأصلية: sistani.org والمكتبة التراثية وبحث الويب.",
 };
 
 export const viewport: Viewport = {
@@ -23,7 +25,9 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
           }}
         />
       </head>
-      <body>{children}</body>
+      <body>
+        <AppShell>{children}</AppShell>
+      </body>
     </html>
   );
 }

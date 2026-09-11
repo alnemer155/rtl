@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { SiteHeader } from "@/components/site-header";
 import { api } from "@/lib/api";
 
 interface Stats {
@@ -68,12 +67,11 @@ export default function AdminPage() {
 
   return (
     <div className="min-h-dvh">
-      <SiteHeader />
-      <main className="mx-auto w-full max-w-3xl px-5 pb-20 sm:px-6">
-        <h1 className="pt-10 text-[20px] font-bold leading-7 text-[var(--ink)]">الإدارة</h1>
+            <main className="mx-auto w-full max-w-3xl px-5 pb-20 sm:px-6">
+        <h1 className="pt-10 text-[20px] font-medium leading-7 text-[var(--foreground)]">الإدارة</h1>
 
         {error ? (
-          <div role="alert" className="fade-in mt-6 text-[14px] text-[var(--muted-strong)]">
+          <div role="alert" className="fade-in mt-6 text-[14px] text-[var(--muted-foreground)]">
             {error}
           </div>
         ) : null}
@@ -83,8 +81,8 @@ export default function AdminPage() {
             <dl className="mt-6 grid grid-cols-2 gap-x-8 gap-y-4 sm:grid-cols-4">
               {cards.map((card) => (
                 <div key={card.label}>
-                  <dt className="text-[11.5px] text-[var(--muted)]">{card.label}</dt>
-                  <dd className="mt-0.5 text-[22px] font-medium tabular-nums leading-7 text-[var(--ink)]">
+                  <dt className="text-[11.5px] text-[var(--muted-foreground)]">{card.label}</dt>
+                  <dd className="mt-0.5 text-[22px] font-medium tabular-nums leading-7 text-[var(--foreground)]">
                     {card.value.toLocaleString("ar-EG")}
                   </dd>
                 </div>
@@ -93,9 +91,9 @@ export default function AdminPage() {
 
             {stats.last_crawl ? (
               <section className="hairline-t mt-10 pt-6">
-                <h2 className="text-[14px] font-medium text-[var(--ink)]">آخر تشغيلة زحف</h2>
-                <p className="mt-2 text-[13px] leading-7 text-[var(--muted)]">
-                  الحالة <span className="text-[var(--muted-strong)]">{stats.last_crawl.status}</span> ·
+                <h2 className="text-[14px] font-medium text-[var(--foreground)]">آخر تشغيلة زحف</h2>
+                <p className="mt-2 text-[13px] leading-7 text-[var(--muted-foreground)]">
+                  الحالة <span className="text-[var(--muted-foreground)]">{stats.last_crawl.status}</span> ·
                   صفحات {stats.last_crawl.pages_processed} · جديدة {stats.last_crawl.records_created} ·
                   محدثة {stats.last_crawl.records_updated} · دون تغيير {stats.last_crawl.records_unchanged} ·
                   فاشلة {stats.last_crawl.records_failed}
@@ -104,21 +102,21 @@ export default function AdminPage() {
             ) : null}
 
             <section className="hairline-t mt-10 pt-6">
-              <h2 className="text-[14px] font-medium text-[var(--ink)]">سجل التشغيلات</h2>
-              <ul className="mt-3 divide-y divide-[var(--line)]">
+              <h2 className="text-[14px] font-medium text-[var(--foreground)]">سجل التشغيلات</h2>
+              <ul className="mt-3 divide-y divide-[var(--border)]">
                 {runs.map((run) => (
                   <li key={run.id} className="py-3.5">
                     <details className="group">
                       <summary className="flex cursor-pointer list-none items-baseline gap-3 text-[13px]">
-                        <span className="text-[var(--ink)]">#{run.id}</span>
-                        <span className="text-[var(--muted)]">{run.status}</span>
-                        <span className="text-[var(--muted)]">
+                        <span className="text-[var(--foreground)]">#{run.id}</span>
+                        <span className="text-[var(--muted-foreground)]">{run.status}</span>
+                        <span className="text-[var(--muted-foreground)]">
                           صفحات {run.pages_processed} · سجلات {run.records_created}
                           {run.records_failed > 0 ? ` · فاشلة ${run.records_failed}` : ""}
                         </span>
                       </summary>
                       {run.errors.length > 0 ? (
-                        <ul className="mt-2 space-y-1 ps-6 text-[11.5px] leading-5 text-[var(--muted)]">
+                        <ul className="mt-2 space-y-1 ps-6 text-[11.5px] leading-5 text-[var(--muted-foreground)]">
                           {run.errors.map((item, index) => (
                             <li key={index} dir="ltr" className="truncate text-start">
                               {item.url}: {item.error}
@@ -130,13 +128,13 @@ export default function AdminPage() {
                   </li>
                 ))}
                 {runs.length === 0 ? (
-                  <li className="py-3 text-[13px] text-[var(--muted)]">لا تشغيلات بعد.</li>
+                  <li className="py-3 text-[13px] text-[var(--muted-foreground)]">لا تشغيلات بعد.</li>
                 ) : null}
               </ul>
             </section>
           </>
         ) : !error ? (
-          <p className="quiet-dot pt-12 text-[13px] text-[var(--muted)]">…</p>
+          <p className="quiet-dot pt-12 text-[13px] text-[var(--muted-foreground)]">…</p>
         ) : null}
       </main>
     </div>

@@ -9,7 +9,7 @@ function Snippet({ snippet }: { snippet: string }) {
   const parts = snippet.split(/(<mark>|<\/mark>)/g);
   let inside = false;
   return (
-    <p className="mt-1.5 text-[14.5px] leading-[1.85] text-[var(--muted-strong)]">
+    <p className="mt-1.5 text-[14.5px] leading-[1.85] text-[var(--muted-foreground)]">
       {parts.map((part, index) => {
         if (part === "<mark>") {
           inside = true;
@@ -32,22 +32,22 @@ function Snippet({ snippet }: { snippet: string }) {
 
 export function SearchResults({ hits }: { hits: SearchHit[] }) {
   return (
-    <div className="divide-y divide-[var(--line)]">
+    <div className="divide-y divide-[var(--border)]">
       {hits.map((hit) => (
         <article key={hit.issue.id} className="fade-in py-5 first:pt-1">
           <h3 className="text-[15px] font-medium leading-6">
             <Link
               href={`/issue/${hit.issue.id}`}
-              className="text-[var(--ink)] transition-colors duration-150 hover:text-[var(--accent)]"
+              className="text-[var(--foreground)] transition-colors duration-150 hover:text-[var(--accent)]"
             >
               {hit.issue.issue_number !== null ? `المسألة ${hit.issue.issue_number}` : "نص من الكتاب"}
             </Link>
           </h3>
           <Snippet snippet={hit.snippet} />
-          <div className="mt-2.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-[12.5px] text-[var(--muted)]">
+          <div className="mt-2.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-[12.5px] text-[var(--muted-foreground)]">
             <Link
               href={`/issue/${hit.issue.id}`}
-              className="transition-colors duration-150 hover:text-[var(--ink)]"
+              className="transition-colors duration-150 hover:text-[var(--foreground)]"
             >
               {hit.issue.book_title}
             </Link>
@@ -71,7 +71,7 @@ export function SearchResults({ hits }: { hits: SearchHit[] }) {
               href={hit.issue.source_url}
               target="_blank"
               rel="noreferrer"
-              className="ms-auto inline-flex items-center gap-1 transition-colors duration-150 hover:text-[var(--ink)]"
+              className="ms-auto inline-flex items-center gap-1 transition-colors duration-150 hover:text-[var(--foreground)]"
             >
               المصدر <ArrowUpLeft size={11} strokeWidth={1.8} />
             </a>

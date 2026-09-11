@@ -3,87 +3,81 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 @font-face {
-  font-family: "Thmanyah Sans";
-  src: url("/fonts/thmanyahsans-Light.woff2") format("woff2");
+  font-family: "IBM Plex Sans Arabic";
+  src: url("/fonts-plex/IBMPlexSansArabic-300.woff2") format("woff2");
   font-weight: 300;
   font-style: normal;
   font-display: swap;
 }
 @font-face {
-  font-family: "Thmanyah Sans";
-  src: url("/fonts/thmanyahsans-Regular.woff2") format("woff2");
+  font-family: "IBM Plex Sans Arabic";
+  src: url("/fonts-plex/IBMPlexSansArabic-400.woff2") format("woff2");
   font-weight: 400;
   font-style: normal;
   font-display: swap;
 }
 @font-face {
-  font-family: "Thmanyah Sans";
-  src: url("/fonts/thmanyahsans-Medium.woff2") format("woff2");
+  font-family: "IBM Plex Sans Arabic";
+  src: url("/fonts-plex/IBMPlexSansArabic-500.woff2") format("woff2");
   font-weight: 500;
-  font-style: normal;
-  font-display: swap;
-}
-@font-face {
-  font-family: "Thmanyah Sans";
-  src: url("/fonts/thmanyahsans-Bold.woff2") format("woff2");
-  font-weight: 700;
-  font-style: normal;
-  font-display: swap;
-}
-@font-face {
-  font-family: "Thmanyah Sans";
-  src: url("/fonts/thmanyahsans-Black.woff2") format("woff2");
-  font-weight: 900;
   font-style: normal;
   font-display: swap;
 }
 
 @theme inline {
-  --font-sans: "Thmanyah Sans", "IBM Plex Sans Arabic", Arial, sans-serif;
+  --font-sans: "IBM Plex Sans Arabic", Arial, sans-serif;
 }
 
 /*
-  نظام التصميم «مصادر» — مدرسة الهدوء:
-  خلفية قريبة من الأبيض الدافئ، حبر رمادي داكن (ليس أسود مطلق)،
-  حدود منخفضة التباين جداً، ظل واحد شبه معدوم، وaccent واحد صامت.
+  نظام التصميم «مصادر» — مدرسة الهدوء (ChatGPT × Qaf):
+  خلفية قريبة من الأبيض الدافئ، حبر دافئ غير أسود، حدود منخفضة التباين،
+  ظل شبه معدوم، accent واحد صامت، ونص المحادثة بوزن 400 دائماً.
 */
 :root {
-  --paper: #fbfbfa;
-  --ink: #2b2a28;
-  --muted: #797670;
-  --muted-strong: #4d4b47;
-  --line: rgba(43, 42, 40, 0.12);
-  --line-strong: rgba(43, 42, 40, 0.22);
-  --stone: #f2f1ee;
-  --wash: #e9e8e4;
-  --raise: #ffffff;
+  --background: #fbfbfa;
+  --foreground: #2b2a28;
+  --muted: #4d4b47;
+  --muted-foreground: #797670;
+  --surface: #f2f1ee;
+  --surface-hover: #e9e8e4;
+  --sidebar: #f4f3f1;
+  --border: rgba(43, 42, 40, 0.12);
+  --border-strong: rgba(43, 42, 40, 0.22);
   --accent: #8a6a4f;
+  --accent-foreground: #fbfbfa;
+  --user-message: #f1f0ec;
+  --composer: #ffffff;
+  --danger: #8f4a42;
   --overlay: rgba(30, 29, 27, 0.16);
 }
 
 .dark {
-  --paper: #1d1c1a;
-  --ink: #eae7e1;
-  --muted: #9d9a92;
-  --muted-strong: #c9c6bf;
-  --line: rgba(234, 231, 225, 0.11);
-  --line-strong: rgba(234, 231, 225, 0.2);
-  --stone: #262523;
-  --wash: #313029;
-  --raise: #262522;
+  --background: #1d1c1a;
+  --foreground: #eae7e1;
+  --muted: #c9c6bf;
+  --muted-foreground: #9d9a92;
+  --surface: #262523;
+  --surface-hover: #313029;
+  --sidebar: #21201e;
+  --border: rgba(234, 231, 225, 0.11);
+  --border-strong: rgba(234, 231, 225, 0.2);
   --accent: #c2a184;
+  --accent-foreground: #1d1c1a;
+  --user-message: #292825;
+  --composer: #262522;
+  --danger: #d08a80;
   --overlay: rgba(0, 0, 0, 0.4);
 }
 
 * { box-sizing: border-box; }
-html { background: var(--paper); }
+html { background: var(--background); }
 body {
   margin: 0;
   min-height: 100%;
   overflow-x: hidden;
-  color: var(--ink);
-  background: var(--paper);
-  font-family: "Thmanyah Sans", "IBM Plex Sans Arabic", Arial, sans-serif;
+  color: var(--foreground);
+  background: var(--background);
+  font-family: "IBM Plex Sans Arabic", Arial, sans-serif;
   font-size: 16px;
   line-height: 1.5;
   font-feature-settings: "kern" 1, "liga" 1, "rlig" 1, "calt" 1;
@@ -99,7 +93,7 @@ button, input, textarea, select { font-family: inherit; }
 ::selection { background: rgba(138, 106, 79, 0.22); }
 
 :focus-visible {
-  outline: 1.5px solid var(--line-strong);
+  outline: 1.5px solid var(--border-strong);
   outline-offset: 2px;
   border-radius: 4px;
 }
@@ -108,7 +102,7 @@ button, input, textarea, select { font-family: inherit; }
 .reading {
   font-size: 16.5px;
   line-height: 1.85;
-  color: var(--ink);
+  color: var(--foreground);
   font-weight: 400;
 }
 .reading p + p { margin-top: 1em; }
@@ -140,8 +134,8 @@ button, input, textarea, select { font-family: inherit; }
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { scrollbar-width: none; }
 
-.hairline-b { border-bottom: 1px solid var(--line); }
-.hairline-t { border-top: 1px solid var(--line); }
+.hairline-b { border-bottom: 1px solid var(--border); }
+.hairline-t { border-top: 1px solid var(--border); }
 
 /* تظليل المقتطفات */
 mark {
@@ -150,3 +144,35 @@ mark {
   border-radius: 3px;
   padding: 0 2px;
 }
+
+/* احترام تفضيل تقليل الحركة */
+@media (prefers-reduced-motion: reduce) {
+  .fade-in, .drawer-in, .sheet-up { animation: none; }
+  .quiet-dot { animation: none; opacity: 0.7; }
+  * { transition-duration: 0.01ms !important; }
+}
+
+/* هامش الأمان السفلي للأجهزة ذات الحواف */
+.safe-bottom { padding-bottom: max(1rem, env(safe-area-inset-bottom)); }
+
+/* tooltip صغير للاستشهادات */
+.citation-ref { position: relative; }
+.citation-ref::after {
+  content: attr(data-tip);
+  position: absolute;
+  bottom: calc(100% + 6px);
+  inset-inline-start: 50%;
+  transform: translateX(50%) translateY(2px);
+  background: var(--foreground);
+  color: var(--background);
+  font-size: 11px;
+  line-height: 1.5;
+  padding: 4px 8px;
+  border-radius: 8px;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease-out;
+  z-index: 20;
+}
+.citation-ref:hover::after { opacity: 1; transform: translateX(50%) translateY(0); }

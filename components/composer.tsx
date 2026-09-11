@@ -2,19 +2,25 @@
 
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ArrowUp, Search, Sparkles, SlidersHorizontal, X } from "lucide-react";
+import { ArrowUp, BookOpen, Search, SlidersHorizontal, Sparkles, Square, X } from "lucide-react";
 import { api, type Madhhab, type Scholar, type SourceInfo } from "@/lib/api";
 
 export type Mode = "search" | "ask";
+export type ResearchMode = "auto" | "islamic" | "web" | "expanded";
 
-export interface FilterState {
+export interface ComposerOptions {
+  researchMode: ResearchMode;
   madhhab?: string;
   scholar?: string;
   book?: string;
-  source?: string;
 }
 
-const EMPTY_FILTERS: FilterState = {};
+const RESEARCH_MODES: { key: ResearchMode; label: string }[] = [
+  { key: "auto", label: "تلقائي" },
+  { key: "islamic", label: "المصادر الإسلامية" },
+  { key: "web", label: "الويب" },
+  { key: "expanded", label: "بحث موسع" },
+];
 
 interface Meta {
   madhhabs: Madhhab[];
@@ -23,10 +29,9 @@ interface Meta {
   sources: SourceInfo[];
 }
 
-function useMeta(enabled: boolean) {
+function useMeta() {
   const [meta, setMeta] = useState<Meta | null>(null);
   useEffect(() => {
-    if (!enabled) return;
     let cancelled = false;
     Promise.all([api.madhhabs(), api.scholars(), api.books(), api.sources()])
       .then(([madhhabs, scholars, books, sources]) => {
@@ -43,19 +48,19 @@ function useMeta(enabled: boolean) {
     return () => {
       cancelled = true;
     };
-  }, [enabled]);
+  }, []);
   return meta;
 }
 
-function FilterPopover({
+function ResearchPopover({
   meta,
-  filters,
+  options,
   onChange,
   onClose,
 }: {
   meta: Meta | null;
-  filters: FilterState;
-  onChange: (filters: FilterState) => void;
+  options: ComposerOptions;
+  onChange: (options: ComposerOptions) => void;
   onClose: () => void;
 }) {
   const ref = useRef<HTMLDivElement>(null);
@@ -63,48 +68,47 @@ function FilterPopover({
     const onKey = (event: KeyboardEvent) => {
       if (event.key === "Escape") onClose();
     };
-    const onClick = (event: MouseEvent) => {
-      if (ref.current && !ref.current.contains(event.target as Node)) onClose();
-    };
     document.addEventListener("keydown", onKey);
-    document.addEventListener("mousedown", onClick);
-    return () => {
-      document.removeEventListener("keydown", onKey);
-      document.removeEventListener("mousedown", onClick);
-    };
+    return () => document.removeEventListener("keydown", onKey);
   }, [onClose]);
 
+  const labelClass = "mb-1 block text-[11.5px] text-[var(--muted-foreground)]";
   const selectClass =
-    "w-full rounded-xl border border-[var(--line)] bg-[var(--paper)] px-3 py-2 text-[13px] text-[var(--ink)] outline-none transition-colors duration-150 focus:border-[var(--line-strong)]";
-  const labelClass = "mb-1.5 block text-[12px] text-[var(--muted)]";
-
-  const hasAny = Object.values(filters).some(Boolean);
+    "w-full rounded-lg border border-[var(--border)] bg-[var(--background)] px-2.5 py-1.5 text-[12.5px] text-[var(--foreground)] outline-none transition-colors duration-150 focus:border-[var(--border-strong)]";
 
   return (
     <div
       ref={ref}
-      className="fade-in absolute inset-x-3 bottom-[calc(100%+8px)] z-20 rounded-2xl border border-[var(--line)] bg-[var(--raise)] p-4 sm:inset-x-auto sm:bottom-[calc(100%+10px)] sm:end-0 sm:w-[300px] sm:p-4"
+      className="fade-in absolute bottom-[calc(100%+10px)] end-0 z-20 w-[290px] rounded-2xl border border-[var(--border)] bg-[var(--background)] p-4"
     >
-      <div className="mb-3 flex items-center justify-between">
-        <span className="text-[13px] font-medium text-[var(--ink)]">حصر البحث</span>
-        {hasAny ? (
+      <p className="mb-2 text-[12px] font-medium text-[var(--foreground)]">وضع البحث</p>
+      <div className="space-y-0.5">
+        {RESEARCH_MODES.map((mode) => (
           <button
-            onClick={() => onChange(EMPTY_FILTERS)}
-            className="text-[12px] text-[var(--muted)] transition-colors duration-150 hover:text-[var(--ink)]"
+            key={mode.key}
+            onClick={() => onChange({ ...options, researchMode: mode.key })}
+            aria-pressed={options.researchMode === mode.key}
+            className={`flex h-8 w-full items-center rounded-lg px-2.5 text-[12.5px] transition-colors duration-150 ${
+              options.researchMode === mode.key
+                ? "bg-[var(--surface-hover)] text-[var(--foreground)]"
+                : "text-[var(--muted-foreground)] hover:bg-[var(--surface)] hover:text-[var(--foreground)]"
+            }`}
           >
-            مسح الكل
+            {mode.label}
           </button>
-        ) : null}
+        ))}
       </div>
-      <div className="space-y-3">
+
+      <p className="mb-2 mt-4 text-[12px] font-medium text-[var(--foreground)]">المصادر</p>
+      <div className="space-y-2.5">
         <div>
           <label className={labelClass}>المذهب</label>
           <select
-            value={filters.madhhab ?? ""}
-            onChange={(event) => onChange({ ...filters, madhhab: event.target.value || undefined })}
+            value={options.madhhab ?? ""}
+            onChange={(event) => onChange({ ...options, madhhab: event.target.value || undefined })}
             className={selectClass}
           >
-            <option value="">كل المذاهب</option>
+            <option value="">تلقائي</option>
             {(meta?.madhhabs ?? []).map((item) => (
               <option key={item.key} value={item.key}>
                 {item.name_ar}
@@ -115,11 +119,11 @@ function FilterPopover({
         <div>
           <label className={labelClass}>المرجع</label>
           <select
-            value={filters.scholar ?? ""}
-            onChange={(event) => onChange({ ...filters, scholar: event.target.value || undefined })}
+            value={options.scholar ?? ""}
+            onChange={(event) => onChange({ ...options, scholar: event.target.value || undefined })}
             className={selectClass}
           >
-            <option value="">كل المراجع</option>
+            <option value="">تلقائي</option>
             {(meta?.scholars ?? []).map((item) => (
               <option key={item.key} value={item.key}>
                 {item.name_ar}
@@ -130,29 +134,14 @@ function FilterPopover({
         <div>
           <label className={labelClass}>الكتاب</label>
           <select
-            value={filters.book ?? ""}
-            onChange={(event) => onChange({ ...filters, book: event.target.value || undefined })}
+            value={options.book ?? ""}
+            onChange={(event) => onChange({ ...options, book: event.target.value || undefined })}
             className={selectClass}
           >
-            <option value="">كل الكتب</option>
+            <option value="">الكل</option>
             {(meta?.books ?? []).map((item) => (
               <option key={item.id} value={String(item.id)}>
                 {item.title}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <label className={labelClass}>المصدر</label>
-          <select
-            value={filters.source ?? ""}
-            onChange={(event) => onChange({ ...filters, source: event.target.value || undefined })}
-            className={selectClass}
-          >
-            <option value="">كل المصادر</option>
-            {(meta?.sources ?? []).map((item) => (
-              <option key={item.key} value={item.key}>
-                {item.name}
               </option>
             ))}
           </select>
@@ -162,14 +151,14 @@ function FilterPopover({
   );
 }
 
-function FilterToken({ label, onRemove }: { label: string; onRemove: () => void }) {
+function OptionToken({ label, onRemove }: { label: string; onRemove: () => void }) {
   return (
-    <span className="inline-flex h-7 items-center gap-1.5 rounded-full border border-[var(--line)] bg-[var(--paper)] py-0 pe-2 ps-3 text-[12px] text-[var(--muted-strong)]">
+    <span className="inline-flex h-7 items-center gap-1.5 rounded-lg border border-[var(--border)] bg-[var(--background)] py-0 pe-1.5 ps-2.5 text-[12px] text-[var(--muted)]">
       {label}
       <button
         onClick={onRemove}
         aria-label={`إزالة ${label}`}
-        className="grid size-4 place-items-center rounded-full text-[var(--muted)] transition-colors duration-150 hover:bg-[var(--wash)] hover:text-[var(--ink)]"
+        className="grid size-4 place-items-center rounded text-[var(--muted-foreground)] transition-colors duration-150 hover:text-[var(--foreground)]"
       >
         <X size={10} strokeWidth={2} />
       </button>
@@ -179,41 +168,36 @@ function FilterToken({ label, onRemove }: { label: string; onRemove: () => void 
 
 export function Composer({
   initialQuery = "",
-  initialMode = "search",
-  initialFilters = EMPTY_FILTERS,
+  initialMode = "ask",
   variant = "hero",
   suggestions,
-  autoSubmit = false,
+  busy = false,
+  onStop,
+  onChatSubmit,
+  onSearchSubmit,
 }: {
   initialQuery?: string;
   initialMode?: Mode;
-  initialFilters?: FilterState;
   variant?: "hero" | "docked";
   suggestions?: string[];
-  autoSubmit?: boolean;
+  busy?: boolean;
+  onStop?: () => void;
+  onChatSubmit?: (message: string, options: ComposerOptions) => void;
+  onSearchSubmit?: (message: string, options: ComposerOptions) => void;
 }) {
   const router = useRouter();
-  const meta = useMeta(true);
+  const meta = useMeta();
   const [query, setQuery] = useState(initialQuery);
   const [mode, setMode] = useState<Mode>(initialMode);
-  const [filters, setFilters] = useState<FilterState>(initialFilters);
-  const [filtersOpen, setFiltersOpen] = useState(false);
+  const [options, setOptions] = useState<ComposerOptions>({ researchMode: "auto" });
+  const [toolsOpen, setToolsOpen] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const submittedRef = useRef(false);
 
-  const metaLoaded = meta !== null;
-  const filterLabels: { key: keyof FilterState; label: string }[] = [
-    { key: "madhhab", label: "المذهب" },
-    { key: "scholar", label: "المرجع" },
-    { key: "book", label: "الكتاب" },
-    { key: "source", label: "المصدر" },
-  ];
-  const tokenText = (key: keyof FilterState, value: string): string => {
+  const tokenText = (key: "madhhab" | "scholar" | "book", value: string): string => {
     if (!meta) return value;
     if (key === "madhhab") return meta.madhhabs.find((item) => item.key === value)?.name_ar ?? value;
     if (key === "scholar") return meta.scholars.find((item) => item.key === value)?.name_ar ?? value;
-    if (key === "book") return meta.books.find((item) => String(item.id) === value)?.title ?? value;
-    return meta.sources.find((item) => item.key === value)?.name ?? value;
+    return meta.books.find((item) => String(item.id) === value)?.title ?? value;
   };
 
   const resize = useCallback(() => {
@@ -225,52 +209,54 @@ export function Composer({
 
   useEffect(resize, [query, resize]);
 
+  const activeTokens = (["madhhab", "scholar", "book"] as const)
+    .filter((key) => options[key])
+    .map((key) => ({
+      key,
+      label: `${key === "book" ? "الكتاب" : key === "scholar" ? "المرجع" : "المذهب"}: ${tokenText(key, options[key] as string)}`,
+    }));
+
   const submit = useCallback(() => {
     const trimmed = query.trim();
-    if (!trimmed) return;
-    const params = new URLSearchParams();
-    params.set("q", trimmed);
-    if (filters.madhhab) params.set("madhhab", filters.madhhab);
-    if (filters.scholar) params.set("scholar", filters.scholar);
-    if (filters.book) params.set("book", filters.book);
-    if (filters.source) params.set("source", filters.source);
-    const target = mode === "ask" ? "/ask" : "/search";
-    router.push(`${target}?${params.toString()}`);
-  }, [query, filters, mode, router]);
-
-  // فتح صفحة السؤال تلقائياً عند وصول ?q= إلى صفحة بها composer ذي autoSubmit
-  useEffect(() => {
-    if (autoSubmit && initialQuery && !submittedRef.current) {
-      submittedRef.current = true;
-      submit();
+    if (!trimmed || busy) return;
+    const payloadOptions = { ...options };
+    if (onChatSubmit) {
+      onChatSubmit(trimmed, payloadOptions);
+    } else if (onSearchSubmit) {
+      onSearchSubmit(trimmed, payloadOptions);
+    } else {
+      const params = new URLSearchParams();
+      params.set("q", trimmed);
+      if (payloadOptions.madhhab) params.set("madhhab", payloadOptions.madhhab);
+      if (payloadOptions.scholar) params.set("scholar", payloadOptions.scholar);
+      if (payloadOptions.book) params.set("book", payloadOptions.book);
+      router.push(`/search?${params.toString()}`);
     }
-  }, [autoSubmit, initialQuery, submit]);
+    setQuery("");
+  }, [query, options, busy, onChatSubmit, onSearchSubmit, router]);
 
-  const activeTokens = filterLabels.filter(({ key }) => filters[key]);
+  const hasInput = query.trim().length > 0;
+  const searchModeActive = mode === "search";
 
   return (
     <div className="w-full">
       {activeTokens.length > 0 ? (
         <div className="mb-2 flex flex-wrap gap-1.5">
-          {activeTokens.map(({ key, label }) => (
-            <FilterToken
-              key={key}
-              label={`${label}: ${tokenText(key, filters[key] as string)}`}
+          {activeTokens.map((token) => (
+            <OptionToken
+              key={token.key}
+              label={token.label}
               onRemove={() => {
-                const next = { ...filters };
-                delete next[key];
-                setFilters(next);
+                const next = { ...options };
+                delete next[token.key];
+                setOptions(next);
               }}
             />
           ))}
         </div>
       ) : null}
 
-      <div
-        className={`relative rounded-[24px] border border-[var(--line)] bg-[var(--raise)] transition-colors duration-200 focus-within:border-[var(--line-strong)] ${
-          variant === "hero" ? "" : ""
-        }`}
-      >
+      <div className="relative rounded-[22px] border border-[var(--border)] bg-[var(--composer)] transition-colors duration-200 focus-within:border-[var(--border-strong)]">
         <textarea
           ref={textareaRef}
           value={query}
@@ -283,75 +269,90 @@ export function Composer({
           }}
           rows={1}
           autoFocus={variant === "hero"}
-          placeholder="اسأل عن مسألة، حكم، حديث أو كتاب…"
-          aria-label="حقل السؤال والبحث"
-          className="block max-h-[200px] w-full resize-none bg-transparent px-4 pt-3.5 text-[16px] leading-7 text-[var(--ink)] outline-none placeholder:text-[var(--muted)]"
+          disabled={busy}
+          placeholder="اسأل عن مسألة شرعية، حديث، حكم أو موضوع إسلامي…"
+          aria-label="حقل السؤال"
+          className="block max-h-[200px] w-full resize-none bg-transparent px-4 pt-3.5 text-[16px] font-normal leading-7 text-[var(--foreground)] outline-none placeholder:text-[var(--muted-foreground)] disabled:opacity-60"
         />
-        <div className="flex items-center justify-between gap-2 px-2.5 pb-2.5 pt-1">
-          <div className="flex min-w-0 items-center gap-1">
-            <div className="flex items-center rounded-full bg-[var(--stone)] p-0.5" role="tablist" aria-label="وضع البحث">
-              <button
-                onClick={() => setMode("search")}
-                aria-pressed={mode === "search"}
-                className={`flex h-7 items-center gap-1.5 rounded-full px-2.5 text-[12.5px] transition-colors duration-150 ${
-                  mode === "search"
-                    ? "bg-[var(--raise)] text-[var(--ink)]"
-                    : "text-[var(--muted)] hover:text-[var(--ink)]"
-                }`}
-              >
-                <Search size={12.5} strokeWidth={1.7} />
-                البحث في النصوص
-              </button>
-              <button
-                onClick={() => setMode("ask")}
-                aria-pressed={mode === "ask"}
-                className={`flex h-7 items-center gap-1.5 rounded-full px-2.5 text-[12.5px] transition-colors duration-150 ${
-                  mode === "ask"
-                    ? "bg-[var(--raise)] text-[var(--ink)]"
-                    : "text-[var(--muted)] hover:text-[var(--ink)]"
-                }`}
-              >
-                <Sparkles size={12.5} strokeWidth={1.7} />
-                اسأل المصادر
-              </button>
-            </div>
+        <div className="flex items-center justify-between gap-2 px-2.5 pb-2.5 pt-1.5">
+          <div className="flex min-w-0 items-center gap-0.5">
             <div className="relative">
               <button
-                onClick={() => setFiltersOpen((open) => !open)}
-                aria-expanded={filtersOpen}
-                aria-label="الفلاتر"
-                className={`flex h-8 items-center gap-1.5 rounded-full px-2.5 text-[12.5px] transition-colors duration-150 ${
-                  filtersOpen || activeTokens.length > 0
-                    ? "text-[var(--ink)]"
-                    : "text-[var(--muted)] hover:bg-[var(--stone)] hover:text-[var(--ink)]"
+                onClick={() => setToolsOpen((open) => !open)}
+                aria-expanded={toolsOpen}
+                aria-label="إعدادات البحث والمصادر"
+                className={`flex h-8 items-center gap-1.5 rounded-lg px-2 text-[12.5px] transition-colors duration-150 ${
+                  toolsOpen || activeTokens.length > 0 || options.researchMode !== "auto"
+                    ? "text-[var(--foreground)]"
+                    : "text-[var(--muted-foreground)] hover:bg-[var(--surface)] hover:text-[var(--foreground)]"
                 }`}
               >
-                <SlidersHorizontal size={13} strokeWidth={1.7} />
-                <span className="hidden sm:inline">فلاتر</span>
+                <SlidersHorizontal size={14} strokeWidth={1.7} />
+                <span className="hidden sm:inline">
+                  {options.researchMode === "auto"
+                    ? "بحث"
+                    : RESEARCH_MODES.find((item) => item.key === options.researchMode)?.label}
+                </span>
               </button>
-              {filtersOpen ? (
-                <FilterPopover
-                  meta={metaLoaded ? meta : null}
-                  filters={filters}
-                  onChange={setFilters}
-                  onClose={() => setFiltersOpen(false)}
+              {toolsOpen ? (
+                <ResearchPopover
+                  meta={meta}
+                  options={options}
+                  onChange={setOptions}
+                  onClose={() => setToolsOpen(false)}
                 />
               ) : null}
             </div>
+            <div className="flex items-center rounded-lg bg-[var(--surface)] p-0.5" role="tablist" aria-label="الوضع">
+              <button
+                onClick={() => setMode("ask")}
+                aria-pressed={mode === "ask"}
+                className={`flex h-7 items-center gap-1.5 rounded-md px-2 text-[12px] transition-colors duration-150 ${
+                  mode === "ask"
+                    ? "bg-[var(--composer)] text-[var(--foreground)]"
+                    : "text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
+                }`}
+              >
+                <Sparkles size={12} strokeWidth={1.7} />
+                اسأل
+              </button>
+              <button
+                onClick={() => setMode("search")}
+                aria-pressed={mode === "search"}
+                className={`flex h-7 items-center gap-1.5 rounded-md px-2 text-[12px] transition-colors duration-150 ${
+                  mode === "search"
+                    ? "bg-[var(--composer)] text-[var(--foreground)]"
+                    : "text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
+                }`}
+              >
+                <Search size={12} strokeWidth={1.7} />
+                بحث
+              </button>
+            </div>
+            {searchModeActive ? (
+              <button
+                onClick={() => setToolsOpen(true)}
+                aria-label="فلاتر البحث"
+                title="فلاتر البحث"
+                className="grid size-8 place-items-center rounded-lg text-[var(--muted-foreground)] transition-colors duration-150 hover:bg-[var(--surface)] hover:text-[var(--foreground)]"
+              >
+                <BookOpen size={14} strokeWidth={1.7} />
+              </button>
+            ) : null}
           </div>
           <button
-            onClick={submit}
-            disabled={!query.trim()}
-            aria-label="إرسال"
-            className="grid size-8 shrink-0 place-items-center rounded-full bg-[var(--ink)] text-[var(--paper)] transition-opacity duration-150 hover:opacity-85 disabled:opacity-25"
+            onClick={() => (busy && onStop ? onStop() : submit())}
+            disabled={!busy && !hasInput}
+            aria-label={busy ? "إيقاف الرد" : "إرسال"}
+            className="grid size-8 shrink-0 place-items-center rounded-full bg-[var(--foreground)] text-[var(--background)] transition-opacity duration-150 hover:opacity-85 disabled:opacity-25"
           >
-            <ArrowUp size={15} strokeWidth={2} />
+            {busy ? <Square size={12} strokeWidth={2} /> : <ArrowUp size={15} strokeWidth={2} />}
           </button>
         </div>
       </div>
 
       {suggestions && suggestions.length > 0 ? (
-        <div className="mt-3 flex flex-wrap justify-center gap-1.5">
+        <div className="mt-4 flex flex-wrap justify-center gap-x-6 gap-y-2">
           {suggestions.map((suggestion) => (
             <button
               key={suggestion}
@@ -359,7 +360,7 @@ export function Composer({
                 setQuery(suggestion);
                 textareaRef.current?.focus();
               }}
-              className="h-8 rounded-full border border-[var(--line)] bg-[var(--paper)] px-3 text-[12.5px] text-[var(--muted)] transition-colors duration-150 hover:border-[var(--line-strong)] hover:text-[var(--ink)]"
+              className="text-[13px] text-[var(--muted-foreground)] transition-colors duration-150 hover:text-[var(--foreground)]"
             >
               {suggestion}
             </button>

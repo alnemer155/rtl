@@ -9,6 +9,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from backend.api.admin import router as admin_router
 from backend.api.ai import router as ai_router
+from backend.api.chat import router as chat_router
 from backend.api.routes import router as api_router
 from backend.config import get_settings
 
@@ -30,6 +31,7 @@ def create_app() -> FastAPI:
         allow_headers=["*"],
     )
     app.include_router(api_router)
+    app.include_router(chat_router)
     app.include_router(ai_router)
     app.include_router(admin_router)
 

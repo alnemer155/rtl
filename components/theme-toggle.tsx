@@ -27,7 +27,7 @@ export function ThemeToggle() {
     <button
       onClick={toggle}
       aria-label="تبديل الوضع الليلي"
-      className="grid size-8 place-items-center rounded-full text-[var(--muted)] transition-colors duration-150 hover:bg-[var(--stone)] hover:text-[var(--ink)]"
+      className="grid size-8 place-items-center rounded-full text-[var(--muted-foreground)] transition-colors duration-150 hover:bg-[var(--surface)] hover:text-[var(--foreground)]"
     >
       {mounted && dark ? <Sun size={15} strokeWidth={1.6} /> : <Moon size={15} strokeWidth={1.6} />}
     </button>

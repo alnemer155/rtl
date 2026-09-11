@@ -4,7 +4,6 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { ArrowUpLeft, ChevronDown } from "lucide-react";
-import { SiteHeader } from "@/components/site-header";
 import { api, type BookSummary, type Issue, type SectionNode } from "@/lib/api";
 
 function TreeNode({
@@ -22,7 +21,7 @@ function TreeNode({
     <li>
       <div
         className={`group flex items-center gap-1 rounded-lg py-1.5 pe-1 transition-colors duration-150 ${
-          selectedId === node.id ? "bg-[var(--stone)]" : "hover:bg-[var(--stone)]"
+          selectedId === node.id ? "bg-[var(--surface)]" : "hover:bg-[var(--surface)]"
         }`}
         style={{ marginInlineStart: `${node.depth * 14}px` }}
       >
@@ -31,7 +30,7 @@ function TreeNode({
             onClick={() => setOpen((value) => !value)}
             aria-label={open ? "طي" : "توسيع"}
             aria-expanded={open}
-            className="grid size-5 shrink-0 place-items-center rounded text-[var(--muted)] transition-colors duration-150 hover:text-[var(--ink)]"
+            className="grid size-5 shrink-0 place-items-center rounded text-[var(--muted-foreground)] transition-colors duration-150 hover:text-[var(--foreground)]"
           >
             <ChevronDown
               size={12}
@@ -46,15 +45,15 @@ function TreeNode({
           onClick={() => onSelect(node)}
           className={`min-w-0 flex-1 truncate text-start text-[13.5px] leading-6 transition-colors duration-150 ${
             selectedId === node.id
-              ? "text-[var(--ink)]"
-              : "text-[var(--muted-strong)] group-hover:text-[var(--ink)]"
+              ? "text-[var(--foreground)]"
+              : "text-[var(--muted-foreground)] group-hover:text-[var(--foreground)]"
           }`}
           title={node.title}
         >
           {node.title.split("»").slice(-1)[0].trim()}
         </button>
         {node.issue_count > 0 ? (
-          <span className="shrink-0 text-[10.5px] tabular-nums text-[var(--muted)]">
+          <span className="shrink-0 text-[10.5px] tabular-nums text-[var(--muted-foreground)]">
             {node.issue_count}
           </span>
         ) : null}
@@ -85,23 +84,23 @@ function ReadingPane({ section }: { section: SectionNode }) {
 
   return (
     <article className="fade-in min-w-0">
-      <h2 className="text-[15px] font-medium leading-6 text-[var(--ink)]">
+      <h2 className="text-[15px] font-medium leading-6 text-[var(--foreground)]">
         {section.title.split("»").slice(-1)[0].trim()}
       </h2>
       {error ? (
-        <p role="alert" className="mt-4 text-[13.5px] text-[var(--muted-strong)]">
+        <p role="alert" className="mt-4 text-[13.5px] text-[var(--muted-foreground)]">
           {error}
         </p>
       ) : issues === null ? (
-        <p className="quiet-dot mt-6 text-[13px] text-[var(--muted)]">…</p>
+        <p className="quiet-dot mt-6 text-[13px] text-[var(--muted-foreground)]">…</p>
       ) : issues.length === 0 ? (
-        <p className="mt-6 text-[13.5px] text-[var(--muted)]">لا نصوص مسجلة في هذا القسم بعد.</p>
+        <p className="mt-6 text-[13.5px] text-[var(--muted-foreground)]">لا نصوص مسجلة في هذا القسم بعد.</p>
       ) : (
-        <div className="divide-y divide-[var(--line)]">
+        <div className="divide-y divide-[var(--border)]">
           {issues.map((issue) => (
             <div key={issue.id} className="py-5">
               {issue.issue_number !== null ? (
-                <h3 className="mb-1.5 text-[13px] font-medium text-[var(--muted)]">
+                <h3 className="mb-1.5 text-[13px] font-medium text-[var(--muted-foreground)]">
                   المسألة {issue.issue_number}
                 </h3>
               ) : null}
@@ -109,7 +108,7 @@ function ReadingPane({ section }: { section: SectionNode }) {
               <div className="mt-3 flex items-center gap-4 text-[12.5px]">
                 <Link
                   href={`/issue/${issue.id}`}
-                  className="text-[var(--muted)] underline-offset-4 transition-colors duration-150 hover:text-[var(--ink)] hover:underline"
+                  className="text-[var(--muted-foreground)] underline-offset-4 transition-colors duration-150 hover:text-[var(--foreground)] hover:underline"
                 >
                   المسألة كاملة
                 </Link>
@@ -117,7 +116,7 @@ function ReadingPane({ section }: { section: SectionNode }) {
                   href={issue.source_url}
                   target="_blank"
                   rel="noreferrer"
-                  className="inline-flex items-center gap-1 text-[var(--muted)] transition-colors duration-150 hover:text-[var(--ink)]"
+                  className="inline-flex items-center gap-1 text-[var(--muted-foreground)] transition-colors duration-150 hover:text-[var(--foreground)]"
                 >
                   المصدر <ArrowUpLeft size={11} strokeWidth={1.8} />
                 </a>
@@ -154,19 +153,18 @@ export default function BookPage() {
 
   return (
     <div className="min-h-dvh">
-      <SiteHeader />
-      <main className="mx-auto w-full max-w-3xl px-5 pb-20 sm:px-6">
+            <main className="mx-auto w-full max-w-3xl px-5 pb-20 sm:px-6">
         {loading ? (
-          <p className="quiet-dot pt-12 text-[13px] text-[var(--muted)]">…</p>
+          <p className="quiet-dot pt-12 text-[13px] text-[var(--muted-foreground)]">…</p>
         ) : error ? (
-          <div role="alert" className="fade-in pt-12 text-[14px] text-[var(--muted-strong)]">
+          <div role="alert" className="fade-in pt-12 text-[14px] text-[var(--muted-foreground)]">
             {error}
           </div>
         ) : book ? (
           <>
             <header className="pt-10">
-              <h1 className="text-[20px] font-bold leading-8 text-[var(--ink)]">{book.title}</h1>
-              <p className="mt-1.5 flex flex-wrap items-center gap-x-2 text-[12.5px] text-[var(--muted)]">
+              <h1 className="text-[20px] font-medium leading-8 text-[var(--foreground)]">{book.title}</h1>
+              <p className="mt-1.5 flex flex-wrap items-center gap-x-2 text-[12.5px] text-[var(--muted-foreground)]">
                 {book.scholar ? <span>{book.scholar}</span> : null}
                 {book.madhhab ? (
                   <>
@@ -180,7 +178,7 @@ export default function BookPage() {
                   href={book.source_url}
                   target="_blank"
                   rel="noreferrer"
-                  className="inline-flex items-center gap-1 transition-colors duration-150 hover:text-[var(--ink)]"
+                  className="inline-flex items-center gap-1 transition-colors duration-150 hover:text-[var(--foreground)]"
                 >
                   المصدر الرسمي <ArrowUpLeft size={11} strokeWidth={1.8} />
                 </a>
@@ -200,11 +198,11 @@ export default function BookPage() {
                   ))}
                 </ul>
               </nav>
-              <div id="reading-pane" className="mt-8 lg:mt-0 lg:border-s lg:border-[var(--line)] lg:ps-8 lg:pt-1">
+              <div id="reading-pane" className="mt-8 lg:mt-0 lg:border-s lg:border-[var(--border)] lg:ps-8 lg:pt-1">
                 {selected ? (
                   <ReadingPane section={selected} />
                 ) : (
-                  <p className="text-[13.5px] leading-7 text-[var(--muted)]">
+                  <p className="text-[13.5px] leading-7 text-[var(--muted-foreground)]">
                     اختر باباً أو فصلاً من الفهرس لعرض نصوصه.
                   </p>
                 )}

@@ -1,4 +1,8 @@
-"""إنشاء محرك وجلسات قاعدة البيانات من DATABASE_URL — يدعم SQLite وPostgreSQL."""
+"""إنشاء محرك وجلسات قاعدة البيانات من DATABASE_URL — يدعم SQLite وPostgreSQL.
+
+المحركات تُخزَّن مؤقتاً لكل رابط: إنشاء محرك جديد لكل طلب يعني اتصال
+TCP+TLS جديداً في كل مرة (مكلف جداً مع قواعد سحابية مثل Neon).
+"""
 
 from __future__ import annotations
 
@@ -8,6 +12,8 @@ from pathlib import Path
 
 from sqlalchemy import Engine, create_engine
 from sqlalchemy.orm import Session, sessionmaker
+
+_ENGINES: dict[str, Engine] = {}
 
 
 def _load_dotenv() -> None:
@@ -53,6 +59,9 @@ def normalize_url(url: str) -> str:
 
 def create_db_engine(url: str | None = None) -> Engine:
     url = normalize_url(url or default_database_url())
+    cached = _ENGINES.get(url)
+    if cached is not None:
+        return cached
     if url.startswith("sqlite:///"):
         relative = url[len("sqlite:///") :]
         if not url.startswith("sqlite:////") and relative.startswith("./"):
@@ -77,6 +86,7 @@ def create_db_engine(url: str | None = None) -> Engine:
             max_overflow=10,
             connect_args={"prepare_threshold": 0},
         )
+    _ENGINES[url] = engine
     return engine
 
 

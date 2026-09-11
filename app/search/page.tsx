@@ -1,24 +1,24 @@
 "use client";
 
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useCallback, useEffect, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { Composer, type FilterState } from "@/components/composer";
+import { Composer, type ComposerOptions } from "@/components/composer";
 import { SearchResults } from "@/components/search-results";
-import { SiteHeader } from "@/components/site-header";
 import { api, type SearchResponse } from "@/lib/api";
 
-function parseFilters(params: URLSearchParams): FilterState {
+function parseFilters(params: URLSearchParams): ComposerOptions {
   return {
+    researchMode: "auto",
     madhhab: params.get("madhhab") || undefined,
     scholar: params.get("scholar") || undefined,
     book: params.get("book") || undefined,
-    source: params.get("source") || undefined,
   };
 }
 
 function ResultsInner() {
   const params = useSearchParams();
+  const router = useRouter();
   const query = params.get("q") || "";
   const page = Number(params.get("page") || "1");
   const filters = parseFilters(params);
@@ -38,12 +38,11 @@ function ResultsInner() {
         madhhab: filters.madhhab,
         scholar: filters.scholar,
         book: filters.book,
-        source: filters.source,
       })
       .then(setData)
       .catch((cause) => setError(cause instanceof Error ? cause.message : "تعذر تحميل النتائج"))
       .finally(() => setLoading(false));
-  }, [query, page, filters.madhhab, filters.scholar, filters.book, filters.source]);
+  }, [query, page, filters.madhhab, filters.scholar, filters.book]);
 
   useEffect(load, [load]);
 
@@ -61,36 +60,43 @@ function ResultsInner() {
         <Composer
           variant="docked"
           initialQuery={query}
-          initialFilters={filters}
+          onSearchSubmit={(message, options) => {
+            const next = new URLSearchParams();
+            next.set("q", message);
+            if (options.madhhab) next.set("madhhab", options.madhhab);
+            if (options.scholar) next.set("scholar", options.scholar);
+            if (options.book) next.set("book", options.book);
+            router.push(`/search?${next.toString()}`);
+          }}
         />
       </div>
 
       {loading ? (
         <div className="mt-12 space-y-1">
           {[0, 1, 2, 3].map((index) => (
-            <div key={index} className="quiet-dot py-5 text-[13px] text-[var(--muted)]">
+            <div key={index} className="quiet-dot py-5 text-[13px] text-[var(--muted-foreground)]">
               يبحث في النصوص…
             </div>
           ))}
         </div>
       ) : error ? (
-        <div role="alert" className="fade-in mt-10 text-[14px] leading-7 text-[var(--muted-strong)]">
+        <div role="alert" className="fade-in mt-10 text-[14px] leading-7 text-[var(--muted-foreground)]">
           {error}
         </div>
       ) : !data || data.results.length === 0 ? (
-        <p className="fade-in mt-14 text-center text-[14px] text-[var(--muted)]">
+        <p className="fade-in mt-14 text-center text-[14px] text-[var(--muted-foreground)]">
           {query
             ? "لا نتائج مطابقة — جرّب كلمات أقل أو أزل بعض الفلاتر."
             : "اكتب ما تبحث عنه في النصوص."}
         </p>
       ) : (
         <>
-          <p className="fade-in mt-8 text-[12.5px] text-[var(--muted)]">
+          <p className="fade-in mt-8 text-[12.5px] text-[var(--muted-foreground)]">
             {data.total} نتيجة
             {query ? (
               <>
                 {" "}
-                عن «<span className="text-[var(--muted-strong)]">{query}</span>»
+                عن «<span className="text-[var(--muted-foreground)]">{query}</span>»
               </>
             ) : null}
           </p>
@@ -103,18 +109,18 @@ function ResultsInner() {
                 onClick={() => goToPage(data.page - 1)}
                 disabled={data.page <= 1}
                 aria-label="الصفحة السابقة"
-                className="grid size-8 place-items-center rounded-full text-[var(--muted)] transition-colors duration-150 hover:bg-[var(--stone)] hover:text-[var(--ink)] disabled:opacity-30"
+                className="grid size-8 place-items-center rounded-full text-[var(--muted-foreground)] transition-colors duration-150 hover:bg-[var(--surface)] hover:text-[var(--foreground)] disabled:opacity-30"
               >
                 <ChevronRight size={15} />
               </button>
-              <span className="tabular-nums text-[var(--muted)]">
+              <span className="tabular-nums text-[var(--muted-foreground)]">
                 {data.page} / {totalPages}
               </span>
               <button
                 onClick={() => goToPage(data.page + 1)}
                 disabled={data.page >= totalPages}
                 aria-label="الصفحة التالية"
-                className="grid size-8 place-items-center rounded-full text-[var(--muted)] transition-colors duration-150 hover:bg-[var(--stone)] hover:text-[var(--ink)] disabled:opacity-30"
+                className="grid size-8 place-items-center rounded-full text-[var(--muted-foreground)] transition-colors duration-150 hover:bg-[var(--surface)] hover:text-[var(--foreground)] disabled:opacity-30"
               >
                 <ChevronLeft size={15} />
               </button>
@@ -129,10 +135,9 @@ function ResultsInner() {
 export default function SearchPage() {
   return (
     <div className="min-h-dvh">
-      <SiteHeader />
-      <Suspense
+            <Suspense
         fallback={
-          <div className="mx-auto mt-10 max-w-3xl px-5 text-[13px] text-[var(--muted)]">…</div>
+          <div className="mx-auto mt-10 max-w-3xl px-5 text-[13px] text-[var(--muted-foreground)]">…</div>
         }
       >
         <ResultsInner />

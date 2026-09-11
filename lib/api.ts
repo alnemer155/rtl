@@ -1,6 +1,7 @@
 // طبقة الاتصال بـAPI منصة المصادر — كل البيانات من الخادم، لا بيانات وهمية.
 
-export const API_URL = process.env.NEXT_PUBLIC_API_URL || "";
+// الاتصال مباشرة بالـAPI (وليس عبر وكيل Next) — بث SSE عبر وكيل التطوير يتعطل
+export const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
 export interface Madhhab {
   id: number;
@@ -106,6 +107,35 @@ export interface AskFilters {
   book?: number;
 }
 
+export interface ChatCitation {
+  index: number;
+  provider: string;
+  provider_label: string;
+  title: string;
+  detail: string;
+  url: string;
+  text: string;
+}
+
+export interface ConversationSummary {
+  id: string;
+  title: string;
+  updated_at: string | null;
+}
+
+export interface ConversationMessage {
+  role: "user" | "assistant";
+  content: string;
+  citations: ChatCitation[];
+  created_at: string | null;
+}
+
+export interface ConversationDetail {
+  id: string;
+  title: string;
+  messages: ConversationMessage[];
+}
+
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const response = await fetch(`${API_URL}${path}`, { cache: "no-store", ...init });
   if (!response.ok) {
@@ -167,4 +197,79 @@ export const api = {
         errors: { url?: string; error?: string }[];
       }[]
     >("/api/admin/crawl-runs"),
+  conversations: () => request<ConversationSummary[]>("/api/chat/conversations"),
+  conversation: (id: number | string) => request<ConversationDetail>(`/api/chat/conversations/${id}`),
+  deleteConversation: (id: string) =>
+    request<{ deleted: number }>(`/api/chat/conversations/${id}`, { method: "DELETE" }),
 };
+
+/** بث محادثة عبر XHR — يعمل مع وكيل التطوير والإنتاج دون تعليق. */
+export function streamChat(
+  body: {
+    message: string;
+    conversation_id?: string;
+    research_mode?: string;
+    madhhab?: string;
+    scholar?: string;
+    book?: number;
+  },
+  handlers: {
+    onMeta?: (payload: { conversation_id: string; route: string }) => void;
+    onStatus?: (payload: { line: string }) => void;
+    onSources?: (payload: { citations: ChatCitation[] }) => void;
+    onDelta?: (payload: { text: string }) => void;
+    onError?: (payload: { message: string }) => void;
+    onDone?: (payload: { finish: string; conversation_id: string }) => void;
+    onAbort?: () => void;
+  },
+): { abort: () => void } {
+  const xhr = new XMLHttpRequest();
+  xhr.open("POST", `${API_URL}/api/chat`);
+  xhr.setRequestHeader("Content-Type", "application/json");
+  xhr.send(JSON.stringify(body));
+
+  let offset = 0;
+  let currentEvent = "";
+
+  const processBuffer = () => {
+    const text = xhr.responseText;
+    if (text.length <= offset) return;
+    const fresh = text.slice(offset);
+    offset = text.length;
+    let buffer = fresh;
+    let separator = buffer.indexOf("\n\n");
+    while (separator >= 0) {
+      const rawEvent = buffer.slice(0, separator);
+      buffer = buffer.slice(separator + 2);
+      for (const line of rawEvent.split("\n")) {
+        if (line.startsWith("event:")) currentEvent = line.slice(6).trim();
+        else if (line.startsWith("data:")) {
+          try {
+            const payload = JSON.parse(line.slice(5).trim());
+            if (currentEvent === "meta") handlers.onMeta?.(payload);
+            else if (currentEvent === "status") handlers.onStatus?.(payload);
+            else if (currentEvent === "sources") handlers.onSources?.(payload);
+            else if (currentEvent === "delta") handlers.onDelta?.(payload);
+            else if (currentEvent === "error") handlers.onError?.(payload);
+            else if (currentEvent === "done") handlers.onDone?.(payload);
+          } catch {
+            // أحداث غير مكتملة تُتجاهل
+          }
+        }
+      }
+      separator = buffer.indexOf("\n\n");
+    }
+  };
+
+  xhr.onreadystatechange = () => {
+    if (xhr.readyState >= 3) processBuffer();
+  };
+  xhr.onprogress = () => processBuffer();
+  xhr.onload = () => {
+    processBuffer();
+  };
+  xhr.onabort = () => handlers.onAbort?.();
+  xhr.onerror = () => handlers.onError?.({ message: "تعذر الاتصال بالخادم." });
+
+  return { abort: () => xhr.abort() };
+}
