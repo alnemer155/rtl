@@ -1,9 +1,10 @@
 # إعداد Cloudflare Pages لمشروع منصة المصادر
-# الواجهة داخل frontend/ — أمر البناء في اللوحة يجب أن يدخل إليها:
-#   Build command: cd frontend && npm install && npx @cloudflare/next-on-pages@1
-#   هذا الملف يثبّت مجلد الناتج وأعلام التوافق تلقائياً.
+# في لوحة Pages (Build configuration):
+#   Build command:  cd frontend && npm install && npx @cloudflare/next-on-pages@1
+#   Deploy command: npx wrangler pages deploy
+# مهم: name أدناه يجب أن يطابق اسم مشروع Pages في لوحتك حرفياً.
 
-name = "masadir-frontend"
+name = "rtl"
 compatibility_date = "2026-01-01"
 compatibility_flags = ["nodejs_compat"]
 pages_build_output_dir = "frontend/.vercel/output/static"
